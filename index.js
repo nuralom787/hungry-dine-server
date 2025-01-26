@@ -1,13 +1,13 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
-require('dotenv').config()
 const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
+require('dotenv').config()
+const { MongoClient, ServerApiVersion } = require('mongodb');
 
 // MIddleware.
 app.use(cors());
-app.use(express());
+app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kwi75.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
@@ -31,6 +31,7 @@ async function run() {
         // Database And Collection.
         const MenuCollection = client.db("Hungry_Dine").collection("Menu");
         const ReviewCollection = client.db("Hungry_Dine").collection("Reviews");
+        const CartCollection = client.db("Hungry_Dine").collection("Carts");
 
 
         // Get All Menus.
@@ -45,6 +46,24 @@ async function run() {
             const result = await ReviewCollection.find().toArray();
             res.send(result);
         });
+
+
+        // Get Cart Item
+        app.get('/carts', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await CartCollection.find(query).toArray();
+            res.send(result);
+        });
+
+
+        // Post Item In Carts.
+        app.post('/carts', async (req, res) => {
+            const cartItem = req.body;
+            const result = await CartCollection.insertOne(cartItem);
+            res.send(result);
+        })
+
 
 
 
