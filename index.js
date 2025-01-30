@@ -3,7 +3,7 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // MIddleware.
 app.use(cors());
@@ -29,9 +29,33 @@ async function run() {
         await client.connect();
 
         // Database And Collection.
+        const UsersCollection = client.db("Hungry_Dine").collection("Users");
         const MenuCollection = client.db("Hungry_Dine").collection("Menu");
         const ReviewCollection = client.db("Hungry_Dine").collection("Reviews");
         const CartCollection = client.db("Hungry_Dine").collection("Carts");
+
+
+
+        // ----------------------------------------
+        //            Users Related API
+        // ----------------------------------------
+
+
+        // Get User
+        app.post('/users', async (req, res) => {
+            const user = req.body;
+            const result = await UsersCollection.insertOne(user);
+            res.send(result);
+        });
+
+
+
+
+
+
+        // -----------------------------------------
+        //         Menus Related API
+        // -----------------------------------------
 
 
         // Get All Menus.
@@ -48,6 +72,12 @@ async function run() {
         });
 
 
+
+        // ------------------------------------------
+        //           Carts Related  API
+        // ------------------------------------------
+
+
         // Get Cart Item
         app.get('/carts', async (req, res) => {
             const email = req.query.email;
@@ -62,8 +92,16 @@ async function run() {
             const cartItem = req.body;
             const result = await CartCollection.insertOne(cartItem);
             res.send(result);
-        })
+        });
 
+
+        // Delete Cart Item.
+        app.delete('/carts/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await CartCollection.deleteOne(query)
+            res.send(result);
+        });
 
 
 
