@@ -41,14 +41,52 @@ async function run() {
         // ----------------------------------------
 
 
+
+
+        // Get All Users.
+        app.get('/users', async (req, res) => {
+            const result = await UsersCollection.find().toArray();
+            res.send(result);
+        });
+
+
+
         // Get User
         app.post('/users', async (req, res) => {
             const user = req.body;
+            const query = { email: user.email };
+            const existing = await UsersCollection.findOne(query);
+            if (existing) {
+                return res.send({ message: 'User Already Exists', insertedId: null });
+            }
             const result = await UsersCollection.insertOne(user);
             res.send(result);
         });
 
 
+        // Update User Role.
+        app.patch('/users/admin/:id', async (req, res) => {
+            const id = req.params.id;
+            const newRole = req.body;
+            // console.log('newRole', newRole.role);
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    role: newRole.role
+                }
+            };
+            const result = await UsersCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+        });
+
+
+        // Delete A User.
+        app.delete('/users/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await UsersCollection.deleteOne(query);
+            res.send(result);
+        });
 
 
 
