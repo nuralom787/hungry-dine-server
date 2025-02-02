@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const app = express();
 const port = process.env.PORT || 5000;
 require('dotenv').config()
@@ -37,6 +38,37 @@ async function run() {
 
 
         // ----------------------------------------
+        //            Token Related API
+        // ----------------------------------------
+
+
+
+        // Create JWT Token.
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
+        });
+
+
+        // Middleware.
+        const VerifyToken = (req, res, next) => {
+            console.log(req.headers.authorization);
+            if (!req.headers.authorization) {
+                return res.status(401).send({ message: 'forbidden access' });
+            }
+            const token = req.headers.authorization.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+                if (err) {
+                    return res.status(401).send({ message: 'Invalid or Wrong Token' });
+                }
+                req.decoded = decoded;
+                next();
+            })
+        }
+
+
+        // ----------------------------------------
         //            Users Related API
         // ----------------------------------------
 
@@ -44,7 +76,7 @@ async function run() {
 
 
         // Get All Users.
-        app.get('/users', async (req, res) => {
+        app.get('/users', VerifyToken, async (req, res) => {
             const result = await UsersCollection.find().toArray();
             res.send(result);
         });
