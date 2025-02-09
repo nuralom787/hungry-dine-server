@@ -170,6 +170,14 @@ async function run() {
         });
 
 
+        // Post New Item.
+        app.post('/menus/addItem', VerifyToken, VerifyAdmin, async (req, res) => {
+            const menuItem = req.body;
+            const result = await MenuCollection.insertOne(menuItem);
+            res.send(result);
+        });
+
+
 
         // ------------------------------------------
         //           Carts Related  API
