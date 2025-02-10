@@ -51,7 +51,7 @@ async function run() {
         });
 
 
-        // Middleware.
+        // Check Token Middleware.
         const VerifyToken = (req, res, next) => {
             // console.log(req.headers.authorization);
             if (!req.headers.authorization) {
@@ -68,7 +68,7 @@ async function run() {
         };
 
 
-        // Check User Admin.
+        // Check User Admin Middleware.
         const VerifyAdmin = async (req, res, next) => {
             const email = req.decoded.email;
             const query = { email: email };
@@ -163,9 +163,11 @@ async function run() {
         });
 
 
-        // Get All Menus.
-        app.get('/reviews', async (req, res) => {
-            const result = await ReviewCollection.find().toArray();
+        // Get An Specific Item.
+        app.get('/menus/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await MenuCollection.findOne(query).toArray();
             res.send(result);
         });
 
@@ -176,6 +178,30 @@ async function run() {
             const result = await MenuCollection.insertOne(menuItem);
             res.send(result);
         });
+
+
+        // Delete An Menu.
+        app.delete('/menus/deleteItem/:id', VerifyToken, VerifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await MenuCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
+
+        // --------------------------------------------
+        //          Reviews Related APIS
+        // --------------------------------------------
+
+
+        // Get All Reviews.
+        app.get('/reviews', async (req, res) => {
+            const result = await ReviewCollection.find().toArray();
+            res.send(result);
+        });
+
+
 
 
 
