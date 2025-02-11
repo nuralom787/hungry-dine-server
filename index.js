@@ -180,6 +180,26 @@ async function run() {
         });
 
 
+        // Update An Menu Details.
+        app.patch('/menus/upItem/:id', async (req, res) => {
+            const id = req.params.id;
+            const menuItem = req.body;
+            const filter = { _id: new ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    name: menuItem.name,
+                    recipe: menuItem.recipe,
+                    image: menuItem.image,
+                    category: menuItem.category,
+                    price: menuItem.price
+                }
+            };
+            const result = await MenuCollection.updateOne(filter, updatedDoc);
+            res.send(result);
+
+        });
+
+
         // Delete An Menu.
         app.delete('/menus/deleteItem/:id', VerifyToken, VerifyAdmin, async (req, res) => {
             const id = req.params.id;
