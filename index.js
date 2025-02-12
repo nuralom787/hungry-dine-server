@@ -1,9 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config()
+const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
 const app = express();
-const port = process.env.PORT || 5000;
-require('dotenv').config()
+
+
+const stripe_key = process.env.STRIPE_SECRET_KEY
+const stripe = require("stripe")(`${stripe_key}`);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // MIddleware.
@@ -12,6 +16,8 @@ app.use(express.json());
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.kwi75.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
+
+
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -255,6 +261,28 @@ async function run() {
             res.send(result);
         });
 
+
+
+        // ------------------------------------------
+        //          Payment Related API
+        // ------------------------------------------
+
+
+
+        // Payment Intent.
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            console.log(amount);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            });
+        });
 
 
 
