@@ -40,6 +40,7 @@ async function run() {
         const MenuCollection = client.db("Hungry_Dine").collection("Menu");
         const ReviewCollection = client.db("Hungry_Dine").collection("Reviews");
         const CartCollection = client.db("Hungry_Dine").collection("Carts");
+        const PaymentsCollection = client.db("Hungry_Dine").collection("Payments");
 
 
 
@@ -269,6 +270,19 @@ async function run() {
 
 
 
+        // Get Payment History.
+        app.get("/user/payment-history", VerifyToken, async (req, res) => {
+            const email = req.query.email;
+            const filter = { email: email };
+            if (req.query.email !== req.decoded.email) {
+                return res.status(403).send({ message: "forbidden access" });
+            }
+            const result = await PaymentsCollection.find(filter).toArray();
+            res.send(result);
+        });
+
+
+
         // Payment Intent.
         app.post("/create-payment-intent", async (req, res) => {
             const { price } = req.body;
@@ -282,6 +296,22 @@ async function run() {
             res.send({
                 clientSecret: paymentIntent.client_secret
             });
+        });
+
+
+
+        // Store Payment Info In Database.
+        app.post('/user/payments', async (req, res) => {
+            const payment = req.body;
+            console.log(payment);
+            const paymentResult = await PaymentsCollection.insertOne(payment);
+            const query = {
+                _id: {
+                    $in: payment.cartIds.map(id => new ObjectId(id))
+                }
+            };
+            const deleteResult = await CartCollection.deleteMany(query)
+            res.send({ paymentResult, deleteResult });
         });
 
 
