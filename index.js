@@ -44,9 +44,13 @@ async function run() {
 
 
 
+
+
         // ----------------------------------------
         //            Token Related API
         // ----------------------------------------
+
+
 
 
 
@@ -88,9 +92,13 @@ async function run() {
         };
 
 
+
+
+
         // ----------------------------------------
         //            Users Related API
         // ----------------------------------------
+
 
 
 
@@ -158,9 +166,14 @@ async function run() {
 
 
 
+
+
         // -----------------------------------------
         //         Menus Related API
         // -----------------------------------------
+
+
+
 
 
         // Get All Menus.
@@ -175,6 +188,22 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const result = await MenuCollection.findOne(query).toArray();
+            res.send(result);
+        });
+
+
+        // Get Cart Menus Items.
+        app.get('/menus/cart/items/:id', VerifyToken, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const paymentRes = await PaymentsCollection.findOne(filter)
+            const query = {
+                _id: {
+                    $in: paymentRes.menuIds.map(id => new ObjectId(id))
+                }
+            };
+            const result = await MenuCollection.find(query).toArray();
+            // console.log(result);
             res.send(result);
         });
 
@@ -217,9 +246,16 @@ async function run() {
 
 
 
+
+
+
         // --------------------------------------------
         //          Reviews Related APIS
         // --------------------------------------------
+
+
+
+
 
 
         // Get All Reviews.
@@ -232,9 +268,14 @@ async function run() {
 
 
 
+
+
         // ------------------------------------------
         //           Carts Related  API
         // ------------------------------------------
+
+
+
 
 
         // Get Cart Item
@@ -264,9 +305,15 @@ async function run() {
 
 
 
+
+
+
         // ------------------------------------------
         //          Payment Related API
         // ------------------------------------------
+
+
+
 
 
 
@@ -300,7 +347,7 @@ async function run() {
 
 
 
-        // Store Payment Info In Database.
+        // Store Payment Info In Database and Delete Cart Items.
         app.post('/user/payments', async (req, res) => {
             const payment = req.body;
             console.log(payment);
