@@ -203,7 +203,6 @@ async function run() {
                 }
             };
             const result = await MenuCollection.find(query).toArray();
-            // console.log(result);
             res.send(result);
         });
 
@@ -360,6 +359,45 @@ async function run() {
             const deleteResult = await CartCollection.deleteMany(query)
             res.send({ paymentResult, deleteResult });
         });
+
+
+
+
+
+        // ---------------------------------------------------------
+        //                     Admin Statistic
+        // ---------------------------------------------------------
+
+
+
+
+
+        // Get Admin Statistic.
+        app.get("/admin/statistic", VerifyToken, VerifyAdmin, async (req, res) => {
+            const result = await PaymentsCollection.aggregate([
+                {
+                    $group: {
+                        _id: null,
+                        totalRevenue: {
+                            $sum: "$price"
+                        }
+                    }
+                }
+            ]).toArray();
+            const revenue = result.length > 0 ? result[0].totalRevenue : 0;
+            const menus = await MenuCollection.estimatedDocumentCount();
+            const orders = await PaymentsCollection.estimatedDocumentCount();
+            const users = await UsersCollection.estimatedDocumentCount();
+
+
+            res.send({
+                revenue,
+                menus,
+                orders,
+                users
+            });
+        });
+
 
 
 
