@@ -400,6 +400,40 @@ async function run() {
 
 
 
+        // Get Admin Graph Statistics.
+        app.get("/admin/graph-statistics", async (req, res) => {
+            const result = await PaymentsCollection.aggregate([
+                {
+                    $unwind: "$menuIds"
+                },
+                {
+                    $set: {
+                        menuIds: { $toObjectId: "$menuIds" }
+                    }
+                },
+                {
+                    $lookup: {
+                        from: "Menu",
+                        localField: "menuIds",
+                        foreignField: "_id",
+                        as: "menuItems"
+                    }
+                },
+                {
+                    $unwind: "$menuItems"
+                },
+                {
+                    $group: {
+                        _id: "$menuItems.category",
+                        quantity: { $sum: 1 },
+                        revenue: { $sum: "$menuItems.price" }
+                    }
+                }
+            ]).toArray();
+            res.send(result);
+        });
+
+
 
         // Send a ping to confirm a successful connection
         await client.db("admin").command({ ping: 1 });
